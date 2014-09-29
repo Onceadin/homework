@@ -1,6 +1,4 @@
-import java.util.Comparator;
-
-public class RBTree<K> {
+public class RBTree<K extends Comparable<K>> implements IRedBlackTree {
 
 	private class Node {
 		private boolean color;
@@ -40,18 +38,15 @@ public class RBTree<K> {
 
 	private Node root;
 	private final Node leaf = new Node();
-	private final Comparator<? super K> comparator;
+	private int size;
 
 	public RBTree() {
 		root = leaf;
-		comparator = null;
+		size = 0;
 	}
 
-	@SuppressWarnings("unchecked")
-	final int compare(Object k1, Object k2) {
-
-		return comparator == null ? ((Comparable<? super K>) k1)
-				.compareTo((K) k2) : comparator.compare((K) k1, (K) k2);
+	public int compare(K k1, K k2) {
+		return ((Comparable<? super K>) k1).compareTo((K) k2);
 	}
 
 	public void leftRotate(Node pv) {
@@ -92,9 +87,10 @@ public class RBTree<K> {
 		pv.parent = tmp;
 	}
 
-	public void insert(K z) {
+	public void add(Comparable e) {
+		size++;
 		Node pv = new Node();
-		pv.setKey(z);
+		pv.setKey((K) e);
 		Node y = new Node();
 		if (root != leaf) {
 			Node x = root;
@@ -168,7 +164,153 @@ public class RBTree<K> {
 		root.setBlack();
 	}
 
-	public boolean find(K z) {
+	public Node get(K z) {
+		Node x = root;
+		Node tmp = leaf;
+		while (x != leaf) {
+			if (compare(x.key, z) == 0) {
+				return (tmp = x);
+			} else if (compare(x.key, z) > 0) {
+				x = x.left;
+			} else {
+				x = x.right;
+			}
+		}
+		return tmp;
+	}
+
+	public boolean remove(Comparable o) {
+		if (size < 1)
+			throw new NullPointerException("Its empty");
+		Node tmp = get((K) o);
+		if (tmp == leaf) {
+			return false;
+		}
+		delete(tmp);
+		return true;
+	}
+
+	public void delete(Node tmp) {
+		size--;
+		if (tmp.left != leaf && tmp.right != leaf) {
+			Node s = successor(tmp);
+			tmp.key = s.key;
+			tmp = s;
+		}
+		Node replacement = (tmp.left != leaf ? tmp.left : tmp.right);
+		if (replacement != leaf) {
+			replacement.parent = tmp.parent;
+			if (tmp.parent == leaf) {
+				root = replacement;
+			} else if (tmp == tmp.parent.left) {
+				tmp.parent.left = replacement;
+			} else {
+				tmp.parent.right = replacement;
+			}
+			tmp.left = tmp.right = tmp.parent = null;
+			if(!tmp.isRed()){
+				fixUpForDelate(replacement);
+			}
+		}
+		else if(tmp.parent == leaf){
+			root = leaf;
+		}
+		else {
+			if(!tmp.isRed()){
+				fixUpForDelate(tmp);
+			}
+			if(tmp.parent != leaf){
+				if(tmp == tmp.parent.left){
+					tmp.parent.left = leaf;
+				}
+				else if(tmp == tmp.parent.right){
+					tmp.parent.right = leaf;
+				}
+				tmp.parent = leaf;
+			}
+		}
+	}
+
+	private void fixUpForDelate(Node tmp) {
+		while(tmp != root && !tmp.isRed()){
+			if(tmp == tmp.parent.left){
+				Node sib = tmp.parent.right;
+				if(sib.isRed()){
+					sib.setBlack();
+					tmp.parent.setRed();
+					leftRotate(tmp.parent);
+					sib = tmp.parent.right;
+				}
+				if(!sib.left.isRed() && !sib.right.isRed()){
+					sib.setRed();
+					tmp = tmp.parent;
+				}
+				else {
+					if(!sib.right.isRed()){
+						sib.left.setBlack();
+						sib.setRed();
+						rightRotate(sib);
+						sib = tmp.parent.right;
+					}
+					sib.color = tmp.parent.color;
+					tmp.parent.setBlack();
+					sib.right.setBlack();
+					leftRotate(tmp.parent);
+					tmp = root;
+				}
+			}
+			else {
+				Node sib = tmp.parent.left;
+				if(sib.isRed()){
+					sib.setBlack();
+					tmp.parent.setRed();
+					rightRotate(tmp.parent);
+					sib = tmp.parent.left;
+				}
+				if(!sib.right.isRed() && !sib.left.isRed()){
+					sib.setRed();
+					tmp = tmp.parent;
+				}
+				else {
+					if(!sib.left.isRed()){
+						sib.right.setBlack();
+						sib.setRed();
+						leftRotate(sib);
+						sib = tmp.parent.left;
+					}
+					sib.color = tmp.parent.color;
+					tmp.parent.setBlack();
+					sib.left.setBlack();
+					rightRotate(tmp.parent);
+					tmp = root;
+				}
+			}
+		}
+		tmp.setBlack();
+	}
+
+	private Node successor(Node x) {
+		Node tmp;
+		if (x == leaf)
+			tmp = leaf;
+		else if (x.right != leaf) {
+			tmp = x.right;
+			while (tmp.left != leaf) {
+				tmp = tmp.left;
+			}
+		} else {
+			Node p = x.parent;
+			tmp = x;
+			while (tmp != leaf && p == tmp.right) {
+				p = tmp;
+				tmp = tmp.parent;
+			}
+		}
+		return tmp;
+	}
+
+	public boolean contains(Comparable o) {
+		K z = (K) o;
 		Node x = root;
 		while (x != leaf) {
 			if (compare(x.key, z) == 0) {

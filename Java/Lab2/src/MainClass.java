@@ -2,11 +2,14 @@
 public class MainClass {
 
 	public static void main(String[] args) {
-		RBTree<Double> firstTest = new RBTree<Double>();
-		firstTest.insert(12.2);
-		firstTest.insert(0.2);
-		firstTest.insert(0.0);
-		System.out.println(firstTest.find(11.2));
+		RBTree<String> firstTest = new RBTree<String>();
+		firstTest.add("01");
+		firstTest.add("no");
+		firstTest.add("yes");
+		System.out.println(firstTest.remove("no"));
+		System.out.println(firstTest.remove("01"));
+		System.out.println(firstTest.remove("yes"));
+		System.out.println(firstTest.remove("no"));
 	}
 
 }
