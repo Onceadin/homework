@@ -4,18 +4,18 @@
  * 
  * 
  */
-public interface IRedBlackTree {
+public interface IRedBlackTree<K extends Comparable<K>> {
   /**
    * Добавить элемент в дерево
    * @param e
    */
-  void add(Comparable e);
+  void add(K e);
   /**
    * Удалить элемент из дерева
    */
-  boolean remove(Comparable o);
+  boolean remove(K o);
   /**
    * Возвращает true, если элемент содержится в дереве
    */
-  boolean contains(Comparable o);
+  boolean contains(K o);
 }

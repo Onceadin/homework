@@ -1,4 +1,9 @@
-public class RBTree<K extends Comparable<K>> implements IRedBlackTree {
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.Queue;
+
+public class RBTree<K extends Comparable<K>> implements IRedBlackTree<K>,
+		Iterable<K> {
 
 	private class Node {
 		private boolean color;
@@ -121,7 +126,6 @@ public class RBTree<K extends Comparable<K>> implements IRedBlackTree {
 			root.right = leaf;
 			root.parent = leaf;
 		}
-
 	}
 
 	public void fixUpForInsert(Node pv) {
@@ -207,23 +211,20 @@ public class RBTree<K extends Comparable<K>> implements IRedBlackTree {
 			} else {
 				tmp.parent.right = replacement;
 			}
-			tmp.left = tmp.right = tmp.parent = null;
-			if(!tmp.isRed()){
+			tmp.left = tmp.right = tmp.parent = leaf;
+			if (!tmp.isRed()) {
 				fixUpForDelate(replacement);
 			}
-		}
-		else if(tmp.parent == leaf){
+		} else if (tmp.parent == leaf) {
 			root = leaf;
-		}
-		else {
-			if(!tmp.isRed()){
+		} else {
+			if (!tmp.isRed()) {
 				fixUpForDelate(tmp);
 			}
-			if(tmp.parent != leaf){
-				if(tmp == tmp.parent.left){
+			if (tmp.parent != leaf) {
+				if (tmp == tmp.parent.left) {
 					tmp.parent.left = leaf;
-				}
-				else if(tmp == tmp.parent.right){
+				} else if (tmp == tmp.parent.right) {
 					tmp.parent.right = leaf;
 				}
 				tmp.parent = leaf;
@@ -232,21 +233,20 @@ public class RBTree<K extends Comparable<K>> implements IRedBlackTree {
 	}
 
 	private void fixUpForDelate(Node tmp) {
-		while(tmp != root && !tmp.isRed()){
-			if(tmp == tmp.parent.left){
+		while (tmp != root && !tmp.isRed()) {
+			if (tmp == tmp.parent.left) {
 				Node sib = tmp.parent.right;
-				if(sib.isRed()){
+				if (sib.isRed()) {
 					sib.setBlack();
 					tmp.parent.setRed();
 					leftRotate(tmp.parent);
 					sib = tmp.parent.right;
 				}
-				if(!sib.left.isRed() && !sib.right.isRed()){
+				if (!sib.left.isRed() && !sib.right.isRed()) {
 					sib.setRed();
 					tmp = tmp.parent;
-				}
-				else {
-					if(!sib.right.isRed()){
+				} else {
+					if (!sib.right.isRed()) {
 						sib.left.setBlack();
 						sib.setRed();
 						rightRotate(sib);
@@ -258,21 +258,19 @@ public class RBTree<K extends Comparable<K>> implements IRedBlackTree {
 					leftRotate(tmp.parent);
 					tmp = root;
 				}
-			}
-			else {
+			} else {
 				Node sib = tmp.parent.left;
-				if(sib.isRed()){
+				if (sib.isRed()) {
 					sib.setBlack();
 					tmp.parent.setRed();
 					rightRotate(tmp.parent);
 					sib = tmp.parent.left;
 				}
-				if(!sib.right.isRed() && !sib.left.isRed()){
+				if (!sib.right.isRed() && !sib.left.isRed()) {
 					sib.setRed();
 					tmp = tmp.parent;
-				}
-				else {
-					if(!sib.left.isRed()){
+				} else {
+					if (!sib.left.isRed()) {
 						sib.right.setBlack();
 						sib.setRed();
 						leftRotate(sib);
@@ -322,5 +320,37 @@ public class RBTree<K extends Comparable<K>> implements IRedBlackTree {
 			}
 		}
 		return false;
+	}
+	
+	
+	private class MyIterator<T> implements Iterator<T> {
+		Queue<T> queue=new LinkedList<T> ();
+		boolean begin = true;
+		public boolean hasNext() {
+			if(begin){
+				makeQueue(root);
+				begin = false;
+			}
+			return !queue.isEmpty();
+		}
+
+
+		public T next() {
+			return (T)queue.poll();
+		}
+		
+		public void makeQueue(Node cur){
+			Node tmp = cur;
+			if(tmp == leaf)
+				return;
+			queue.offer((T)tmp.key);
+			makeQueue(tmp.right);
+			makeQueue(tmp.left);
+		}
+		
+	}
+
+	public Iterator<K> iterator() {
+		return new MyIterator<K>();
 	}
 }
