@@ -8,8 +8,10 @@ import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.List;
 
+
 public class ServerThread extends Thread {
 	private DatagramSocket socket;
+	// список всех тех, кому нужно ответить
 	private List<Recipient> listOfClients;
 	private boolean goingOn;
 
@@ -22,9 +24,12 @@ public class ServerThread extends Thread {
 	public void run() {
 		while (goingOn) {
 			try {
+				// подготавливаю пакет для получения сообщения
 				byte[] buf = new byte[256];
 				DatagramPacket packet = new DatagramPacket(buf, buf.length);
 				socket.receive(packet);
+				// пытаюсь достать содержимое пакета
+				// преобразовать байты в message
 				buf = packet.getData();
 				ByteArrayInputStream bs = new ByteArrayInputStream(buf);
 				ObjectInputStream os = new ObjectInputStream(bs);		
@@ -35,6 +40,7 @@ public class ServerThread extends Thread {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
+				// узнаю кому предназначалось сообщение
 				String recipient = msg.getRecipient();
 				switch (recipient) {
 				case "all":
@@ -42,6 +48,7 @@ public class ServerThread extends Thread {
 					System.out.println(msg);
 					break;
 				case "server":
+					// если сообщение для сервера, значит клиент покидает чат
 					InetAddress ia = packet.getAddress();
 					int port = packet.getPort();
 					Recipient goingOut = new Recipient(ia, port);
@@ -54,6 +61,7 @@ public class ServerThread extends Thread {
 					}
 					break;
 				default:
+					// сообщение отправленно для кого-то конкретного
 					for(Recipient r: listOfClients){
 						if(r.getName() == recipient)
 							sendFor(r, msg);

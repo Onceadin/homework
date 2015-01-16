@@ -25,9 +25,11 @@ public class Client {
 			String message = c.readLine();
 			msg = new Message(args[2], message, "all");
 		}
+		// формирую пакет для отправки
 		buf = msg.toString().getBytes();
 		DatagramPacket packet = new DatagramPacket(msg.toString().getBytes(), buf.length, address, port);
 		socket.send(packet);
+		// жду ответа
 		packet = new DatagramPacket(buf, buf.length);
 		socket.receive(packet);
 		ByteArrayInputStream bs = new ByteArrayInputStream(packet.getData());
