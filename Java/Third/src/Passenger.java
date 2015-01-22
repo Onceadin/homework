@@ -6,7 +6,7 @@ public class Passenger implements Runnable {
 	private int destinationLevel;
 	private boolean inside;
 	private Elevator elevator;
-	Lock lock = new ReentrantLock();
+	private static Lock lock = new ReentrantLock();
 
 	public Passenger(Elevator elevator, int currentLevel, int destinationLevel) {
 		this.elevator = elevator;
