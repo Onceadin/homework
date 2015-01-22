@@ -3,6 +3,8 @@ import java.awt.EventQueue;
 import java.awt.TextArea;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.IOException;
 import java.net.DatagramPacket;
 
@@ -11,6 +13,7 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
+
 import java.awt.Font;
 
 public class GUIClient {
@@ -21,6 +24,7 @@ public class GUIClient {
 	private JTextField txtName;
 	private TextArea textArea;
 	private JTextField textNameOfRecipient;
+	private volatile boolean in;
 
 	/**
 	 * Launch the application.
@@ -49,7 +53,7 @@ public class GUIClient {
 	public void startListening() {
 		new Thread(new Runnable() {
 			public void run() {
-				while (true) {
+				while (in) {
 					byte[] incomingData = new byte[1024];
 					DatagramPacket p = new DatagramPacket(incomingData,
 							incomingData.length);
@@ -77,8 +81,26 @@ public class GUIClient {
 	 * Initialize the contents of the frame.
 	 */
 	private void initialize() {
+		in = false;
 		frame = new JFrame();
 		frame.setBounds(100, 100, 450, 300);
+		frame.addWindowListener(new WindowAdapter() {
+			@Override
+			public void windowClosing(WindowEvent e) {
+				if (in) {
+					Message buyServer = client.formGoodbuyMessage();
+					try {
+						client.sendMessage(buyServer);
+					} catch (IOException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					}
+					in = false;
+				}
+				System.out.println("Buy");
+				e.getWindow().dispose();
+			}
+		});
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.getContentPane().setLayout(null);
 
@@ -132,17 +154,26 @@ public class GUIClient {
 		btnLogin.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				try {
-					client = new Client(txtName.getText());
-					Message helloServer = client.formWelcomingMessage();
-					client.sendMessage(helloServer);
-					startListening();
-					textForSending.setText("");
+					if (!in) {
+						client = new Client(txtName.getText());
+						Message helloServer = client.formWelcomingMessage();
+						client.sendMessage(helloServer);
+						in = true;
+						btnLogin.setText("logOut");
+						startListening();
+						textForSending.setText("");
+					} else {
+						Message buyServer = client.formGoodbuyMessage();
+						client.sendMessage(buyServer);
+						in = false;
+						btnLogin.setText("logIn");
+					}
 				} catch (IOException e1) {
 					e1.printStackTrace();
 				}
 			}
 		});
-		btnLogin.setBounds(12, 36, 70, 25);
+		btnLogin.setBounds(12, 36, 82, 25);
 		panelForButtons.add(btnLogin);
 
 		txtName = new JTextField();
@@ -150,17 +181,18 @@ public class GUIClient {
 		txtName.setBounds(0, 12, 94, 19);
 		panelForButtons.add(txtName);
 		txtName.setColumns(10);
-		
+
 		textNameOfRecipient = new JTextField();
 		textNameOfRecipient.setBounds(0, 115, 94, 19);
 		panelForButtons.add(textNameOfRecipient);
 		textNameOfRecipient.setColumns(10);
-		
+
 		JButton btnSendForHim = new JButton("Send for him");
 		btnSendForHim.setFont(new Font("Dialog", Font.BOLD, 5));
 		btnSendForHim.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				Message msg = client.formMessage(textForSending.getText(), textNameOfRecipient.getText());
+				Message msg = client.formMessage(textForSending.getText(),
+						textNameOfRecipient.getText());
 				try {
 					client.sendMessage(msg);
 				} catch (IOException e1) {

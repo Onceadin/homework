@@ -106,7 +106,7 @@ public class Server {
 		for (User a : users) {
 			if (a.getName().equals(user))
 				tmp.add(a);
-			}
+		}
 		return tmp;
 	}
 
@@ -141,6 +141,8 @@ public class Server {
 				} catch (IOException e) {
 					System.err.println("Problem with sending message" + e);
 				}
+			} else if (incomingMessagge.getRecipient().equals("buy")) {
+				server.checkHimOut(incomingMessagge);
 			} else {
 				List<User> recipient = server.checkUser(incomingMessagge
 						.getRecipient());
@@ -152,13 +154,23 @@ public class Server {
 					}
 				} else {
 					try {
-						for(User usr: recipient)
+						for (User usr : recipient)
 							server.sendByName(incomingMessagge, usr);
 					} catch (IOException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
 				}
+			}
+		}
+	}
+
+	private void checkHimOut(Message incomingMessagge) {
+		int pv = Integer.parseInt(incomingMessagge.getMessage());
+		for (int i = 0; i < users.size(); i++) {
+			if (users.get(i).getPortNumber() == pv) {
+				users.remove(i);
+				return;
 			}
 		}
 	}

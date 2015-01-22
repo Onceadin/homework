@@ -30,12 +30,19 @@ public class Client {
 		return new DatagramPacket(buf, buf.length,
 				InetAddress.getByName("localhost"), 1234);
 	}
-
+	
+	// message for registration in server list
 	public Message formWelcomingMessage() {
 		return new Message(this.name, new Date(),
 				String.valueOf(socketForReceiving.getLocalPort()), "server");
 	}
 
+	// message for logout
+	public Message formGoodbuyMessage() {
+		return new Message(this.name, new Date(),
+				String.valueOf(socketForReceiving.getLocalPort()), "buy");
+	}
+	
 	// form message for sending
 	public Message formMessage(String msg, String recipient) {
 		return new Message(this.name, new Date(), msg, recipient);
